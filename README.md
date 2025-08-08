@@ -24,9 +24,7 @@ This plugin is compatible with **OmegaT 5.7.0** and newer versions.
 
 ## Where to find the built artifact?
 
-After building, the distribution files can be found at:
-`build/distributions/install`
-within your local repository copy.
+After building, the distribution files can be found at `build/install` within your local repository copy.
 
 Prebuilt binaries are also available from the [Releases](https://github.com/capstanlqc/omegat-plugin-importExportCredentials/releases) page.
 
