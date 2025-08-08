@@ -77,7 +77,10 @@ public class ManageCredentialsDialog extends JDialog {
         exportButton.addActionListener(e -> exportSelected());
         deleteButton.addActionListener(e -> deleteSelected(false));
         exportDeleteButton.addActionListener(e -> deleteSelected(true));
-        cancelButton.addActionListener(e -> dispose());
+        cancelButton.addActionListener(e -> {
+            dispose();
+            ImportExportCredentials.showImportChoiceDialog(getOwner());
+        });
 
         bottomPanel.add(exportButton);
         bottomPanel.add(deleteButton);
