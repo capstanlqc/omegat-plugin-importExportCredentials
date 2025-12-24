@@ -1,8 +1,6 @@
 package be.capstan.omegat.plugin;
 
 import org.omegat.core.team2.TeamSettings;
-import org.omegat.core.Core;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -14,38 +12,35 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ImportFromFileDialog {
-    protected static final ResourceBundle res = ResourceBundle.getBundle(
+    private static final ResourceBundle res = ResourceBundle.getBundle(
             "ImportExportCredentials", Locale.getDefault());
-            
-    // This method is called to start the import process
-    public static void showDialog(Component parent) {
-        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
-        fileChooser.setFileFilter(new FileNameExtensionFilter(res.getString("icp.importdialog.fc.fileFilter"), "properties"));
-        fileChooser.setDialogTitle(res.getString("icp.importdialog.fc.title"));
 
-        // Show file chooser centered relative to parent
+    // Updated to accept callback for refreshing parent dialog
+    public static void showDialog(Component parent, Runnable onSuccess) {
+        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.home"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter(
+                res.getString("icp.import.fileFilter"), "properties"));
+        fileChooser.setDialogTitle(res.getString("icp.import.dialogTitle"));
+
         int result = fileChooser.showOpenDialog(parent);
 
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            processFile(parent, selectedFile);
-        } else {
-            // User canceled or closed - show main dialog again
-            ImportExportCredentials.showImportChoiceDialog(parent);
+            processFile(parent, selectedFile, onSuccess);
         }
+        // No else needed - just returns to main dialog
     }
 
-    private static void processFile(Component parent, File file) {
+    private static void processFile(Component parent, File file, Runnable onSuccess) {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream(file);
              InputStreamReader reader = new InputStreamReader(fis, "UTF-8")) {
             props.load(reader);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(parent,
-                    res.getString("icp.importdialog.readError") + ex.getMessage(),
-                    res.getString("icp.importdialog.error"),
+                    res.getString("icp.import.readError") + ex.getMessage(),
+                    res.getString("icp.import.errorTitle"),
                     JOptionPane.ERROR_MESSAGE);
-            ImportExportCredentials.showImportChoiceDialog(parent);
             return;
         }
 
@@ -78,20 +73,20 @@ public class ImportFromFileDialog {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(parent,
-                    res.getString("icp.importdialog.saveError") + ex.getMessage(),
-                    res.getString("icp.importdialog.error"),
+                    res.getString("icp.import.saveError") + ex.getMessage(),
+                    res.getString("icp.import.errorTitle"),
                     JOptionPane.ERROR_MESSAGE);
-            ImportExportCredentials.showImportChoiceDialog(parent);
             return;
         }
 
         JOptionPane.showMessageDialog(parent,
-                res.getString("icp.importdialog.info.message").replace("{count}", Integer.toString(urlCount)),
-                res.getString("icp.importdialog.info.title"),
+                res.getString("icp.import.successMessage")
+                        .replace("{count}", Integer.toString(urlCount)),
+                res.getString("icp.import.successTitle"),
                 JOptionPane.INFORMATION_MESSAGE);
 
-        if (urlCount == 0) {
-            ImportExportCredentials.showImportChoiceDialog(parent);
+        if (onSuccess != null && urlCount > 0) {
+            onSuccess.run();
         }
     }
 }

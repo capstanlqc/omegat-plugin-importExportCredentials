@@ -6,6 +6,7 @@
 - **Export** selected credentials in bulk to a `.properties` file.
 - **Delete** selected credentials from the OmegaT repository credentials store.
 - **Manually add** new repository credentials, with an option to strip whitespace from inputs.
+- **Edit** existing credentials.
 
 ## Building
 
