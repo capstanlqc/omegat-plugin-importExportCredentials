@@ -1,4 +1,6 @@
 # OmegaT Import/Export Credentials Plugin
+<img width="665" height="406" alt="image" src="https://github.com/user-attachments/assets/b30b227e-a382-42ec-be65-65e3bfe489af" />
+
 
 **Features**
 
