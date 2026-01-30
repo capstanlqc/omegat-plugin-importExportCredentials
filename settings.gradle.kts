@@ -1,1 +1,1 @@
-rootProject.name = "omegat-plugin-importExportCredentials"
+rootProject.name = "omegat-plugin-credentialsManager"

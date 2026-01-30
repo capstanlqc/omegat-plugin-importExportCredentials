@@ -1,6 +1,7 @@
 package be.capstan.omegat.plugin;
 
 import org.omegat.core.team2.TeamSettings;
+import org.omegat.util.Preferences;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
@@ -82,6 +83,12 @@ public class MainCredentialsDialog extends JDialog {
         JButton editButton = new JButton(res.getString("icp.main.edit"));
         JButton exportButton = new JButton(res.getString("icp.main.exportSelected"));
         JButton deleteButton = new JButton(res.getString("icp.main.deleteSelected"));
+
+        // Enable "Edit" and "Export" buttons only if allowed in preferences
+        String allowVal = Preferences.getPreference("credplugin_allow_export_edit");
+        boolean allowRestricted = "allowforsure".equals(allowVal);
+        editButton.setEnabled(allowRestricted);
+        exportButton.setEnabled(allowRestricted);
 
         // Set smaller margins (internal padding) for all buttons
         Insets smallMargin = new Insets(2, 8, 2, 8); // top, left, bottom, right
