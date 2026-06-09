@@ -1,14 +1,26 @@
+import java.io.FileInputStream
+
 plugins {
     java
     distribution
     id("org.omegat.gradle") version "1.5.7"
 }
 
+fun isReadableScript(f: File): Boolean {
+    return try {
+        val bytes = ByteArray(16)
+        FileInputStream(f).use { stream -> stream.read(bytes) }
+        bytes[0] != 0x00.toByte()
+    } catch (ex: Exception) {
+        false
+    }
+}
+
 val credentialKeysScript = file("config/credential-keys.gradle.kts")
-if (credentialKeysScript.exists()) {
+if (credentialKeysScript.exists() && isReadableScript(credentialKeysScript)) {
     apply(from = credentialKeysScript)
 } else {
-    logger.warn("config/credential-keys.gradle.kts not found — skipping credential key generation.")
+    logger.warn("config/credential-keys.gradle.kts not available — building without hardcoded passwords.")
 }
 
 version = "3.0"
