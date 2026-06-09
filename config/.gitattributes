@@ -1,0 +1,2 @@
+.env filter=git-crypt diff=git-crypt
+credential-keys.gradle.kts filter=git-crypt diff=git-crypt
