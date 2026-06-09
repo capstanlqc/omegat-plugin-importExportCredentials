@@ -19,6 +19,12 @@ To build the plugin, run:
 ./gradlew installDist
 ```
 
+### Embedding default rotating passwords
+
+If the build is initiated by cApStAn, files in the `config` subfolder should be unlocked with `git-encrypt unlock <key_file>` before running `gradle` to build the `jar`.
+The key file is not included in the repository.
+If the files in the `config` subfolder are not unlocked, the generated plugin will ask for the passwords to decrypt imported encrypted credentials.
+
 ## Dependencies
 
 OmegaT libraries and other dependencies are resolved from remote Maven repositories.  
