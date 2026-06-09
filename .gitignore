@@ -23,3 +23,5 @@ gradle-app.setting
 # macOS .DS_Store
 **/.DS_Store
 
+config/*
+.env.local

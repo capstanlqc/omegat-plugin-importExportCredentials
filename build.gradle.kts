@@ -4,7 +4,19 @@ plugins {
     id("org.omegat.gradle") version "1.5.7"
 }
 
-version = "2.1"
+val credentialKeysScript = file("config/credential-keys.gradle.kts")
+if (credentialKeysScript.exists()) {
+    apply(from = credentialKeysScript)
+} else {
+    logger.warn("config/credential-keys.gradle.kts not found — skipping credential key generation.")
+}
+
+version = "3.0"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
 
 omegat {
     version = "5.7.0"

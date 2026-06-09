@@ -5,10 +5,11 @@
 **Features**
 
 - **Import** credentials from a `.properties` file (in standard Java properties format).
-- **Export** selected credentials in bulk to a `.properties` file.
+- **Import** credentials from an encrypted `.properties` file (`<filename>.properties.encrypted`).
+- **Export** selected credentials in bulk to a `.properties` file (if enabled).
 - **Delete** selected credentials from the OmegaT repository credentials store.
 - **Manually add** new repository credentials, with an option to strip whitespace from inputs.
-- **Edit** existing credentials.
+- **Edit** existing credentials (if enabled).
 
 ## Building
 
