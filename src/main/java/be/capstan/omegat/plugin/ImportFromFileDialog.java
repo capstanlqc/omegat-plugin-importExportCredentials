@@ -53,17 +53,17 @@ public class ImportFromFileDialog {
         }
     }
 
-    private static List<String> getHardcodedPasswords() {
-        try {
-            Class<?> cls = Class.forName("be.capstan.omegat.plugin.CredentialKeys");
-            @SuppressWarnings("unchecked")
-            List<String> passwords =
-                    (List<String>) cls.getMethod("getPasswords").invoke(null);
-            return passwords;
-        } catch (Exception ignored) {
-            return Collections.emptyList();
-        }
-    }
+    //private static List<String> getHardcodedPasswords() {
+        //try {
+            //Class<?> cls = Class.forName("be.capstan.omegat.plugin.CredentialKeys");
+            //@SuppressWarnings("unchecked")
+            //List<String> passwords =
+                    //(List<String>) cls.getMethod("getPasswords").invoke(null);
+            //return passwords;
+        //} catch (Exception ignored) {
+            //return Collections.emptyList();
+        //}
+    //}
 
     private static String readPlainFile(Component parent, File file) {
         try {
@@ -95,7 +95,7 @@ public class ImportFromFileDialog {
         }
 
         // Try each hardcoded password in turn
-        for (String pwd : getHardcodedPasswords()) {
+        for (String pwd : CredentialKeys.getPasswords()) {
             try {
                 String result = FileDecryptor.decrypt(raw, pwd);
                 if (isValidCredentialContent(result)) return result;

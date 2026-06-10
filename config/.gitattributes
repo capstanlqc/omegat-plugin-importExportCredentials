@@ -1,2 +1,5 @@
 .env filter=git-crypt diff=git-crypt
 credential-keys.gradle.kts filter=git-crypt diff=git-crypt
+obfuscation.gradle.kts filter=git-crypt diff=git-crypt
+proguard.pro filter=git-crypt diff=git-crypt
+obf-dictionary.txt filter=git-crypt diff=git-crypt

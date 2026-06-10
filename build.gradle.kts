@@ -21,9 +21,57 @@ if (credentialKeysScript.exists() && isReadableScript(credentialKeysScript)) {
     apply(from = credentialKeysScript)
 } else {
     logger.warn("config/credential-keys.gradle.kts not available — building without hardcoded passwords.")
+    
+    // Generate a fallback stub so the public build compiles successfully
+    val generateFallbackKeys by tasks.registering {
+        val outputFile = file("build/generated/credentialKeys/be/capstan/omegat/plugin/CredentialKeys.java")
+        outputs.file(outputFile)
+        doLast {
+            outputFile.parentFile.mkdirs()
+            outputFile.writeText(
+                """
+                package be.capstan.omegat.plugin;
+                
+                import java.util.Collections;
+                import java.util.List;
+                
+                /** AUTO-GENERATED FALLBACK — no hardcoded passwords. */
+                public final class CredentialKeys {
+                    private CredentialKeys() {}
+                    public static List<String> getPasswords() {
+                        return Collections.emptyList();
+                    }
+                }
+                """.trimIndent()
+            )
+        }
+    }
+    
+    // Tell the compiler where to find the generated stub
+    sourceSets {
+        main {
+            java {
+                srcDir("build/generated/credentialKeys")
+            }
+        }
+    }
+    
+    tasks.named("compileJava") {
+        dependsOn(generateFallbackKeys)
+    }
 }
 
-version = "3.0"
+// Check if obfuscation script is available and readable
+val obfuscationScript = file("config/obfuscation.gradle.kts")
+val useObfuscation = obfuscationScript.exists() && isReadableScript(obfuscationScript)
+
+if (useObfuscation) {
+    apply(from = obfuscationScript)
+} else {
+    logger.warn("config/obfuscation.gradle.kts not available — building without obfuscation.")
+}
+
+version = "3.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -43,7 +91,13 @@ dependencies {
 distributions {
     main {
         contents {
-            from(tasks["jar"], "README.md", "COPYING")
+            // Package the obfuscated JAR if we have the key, otherwise the standard JAR
+            if (useObfuscation) {
+                from(tasks.named("obfuscate"))
+            } else {
+                from(tasks["jar"])
+            }
+            from("README.md", "COPYING")
         }
     }
 }
