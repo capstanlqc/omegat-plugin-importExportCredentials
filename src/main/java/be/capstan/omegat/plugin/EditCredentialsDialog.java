@@ -5,8 +5,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -31,7 +29,6 @@ public class EditCredentialsDialog extends JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        // Fields panel
         JPanel fieldsPanel = new JPanel(new GridBagLayout());
         fieldsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -39,7 +36,6 @@ public class EditCredentialsDialog extends JDialog {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // URL label and field
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0;
         fieldsPanel.add(new JLabel(res.getString("icp.edit.urlLabel")), gbc);
 
@@ -47,7 +43,6 @@ public class EditCredentialsDialog extends JDialog {
         gbc.gridx = 1; gbc.weightx = 1.0;
         fieldsPanel.add(urlField, gbc);
 
-        // Username label and field
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.0;
         fieldsPanel.add(new JLabel(res.getString("icp.edit.usernameLabel")), gbc);
 
@@ -55,7 +50,6 @@ public class EditCredentialsDialog extends JDialog {
         gbc.gridx = 1; gbc.weightx = 1.0;
         fieldsPanel.add(usernameField, gbc);
 
-        // Password label and field with toggle button
         gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.0;
         fieldsPanel.add(new JLabel(res.getString("icp.edit.passwordLabel")), gbc);
 
@@ -71,7 +65,6 @@ public class EditCredentialsDialog extends JDialog {
         gbc.gridx = 1; gbc.weightx = 1.0;
         fieldsPanel.add(passwordPanel, gbc);
 
-        // Strip spaces checkbox
         stripSpacesCheck = new JCheckBox(res.getString("icp.edit.stripSpacesCheck"), true);
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.weightx = 0.0;
         gbc.fill = GridBagConstraints.NONE;
@@ -79,14 +72,12 @@ public class EditCredentialsDialog extends JDialog {
 
         add(fieldsPanel, BorderLayout.NORTH);
 
-        // Status label
         statusLabel = new JLabel(" ");
         statusLabel.setForeground(Color.RED);
         statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(statusLabel, BorderLayout.CENTER);
 
-        // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton okButton = new JButton(res.getString("icp.edit.okButton"));
         JButton cancelButton = new JButton(res.getString("icp.edit.cancelButton"));
@@ -98,7 +89,6 @@ public class EditCredentialsDialog extends JDialog {
         buttonPanel.add(cancelButton);
         add(buttonPanel, BorderLayout.PAGE_END);
 
-        // Add listeners to reset status
         DocumentListener docListener = new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { clearStatus(); }
             @Override public void removeUpdate(DocumentEvent e) { clearStatus(); }
@@ -110,7 +100,6 @@ public class EditCredentialsDialog extends JDialog {
         passwordField.getDocument().addDocumentListener(docListener);
         stripSpacesCheck.addActionListener(e -> clearStatus());
 
-        // Load existing credentials
         loadCredentials(url);
 
         pack();
@@ -122,28 +111,21 @@ public class EditCredentialsDialog extends JDialog {
     private void loadCredentials(String url) {
         try {
             String username = TeamSettings.get(url + "!username");
-            String passwordB64 = TeamSettings.get(url + "!password");
+            
+            // FIX: Ensure we are passing the full key with "!password"
+            String password = CredentialStorage.getPlainPassword(url + "!password");
 
             if (username != null) {
                 usernameField.setText(username);
             }
 
-            if (passwordB64 != null) {
-                try {
-                    String decoded = new String(
-                            Base64.getDecoder().decode(passwordB64),
-                            StandardCharsets.UTF_8
-                    );
-                    passwordField.setText(decoded);
-                    // Show password by default
-                    passwordField.setEchoChar((char) 0);
-                    toggleButton.setText(res.getString("icp.edit.toggleButton.hide"));
-                } catch (IllegalArgumentException e) {
-                    // Invalid base64, leave empty
-                }
+            if (password != null && !password.isEmpty()) {
+                passwordField.setText(password);
+                passwordField.setEchoChar((char) 0);
+                toggleButton.setText(res.getString("icp.edit.toggleButton.hide"));
             }
         } catch (Exception e) {
-            // If loading fails, fields remain empty
+            // Ignore loading failures to allow manual overriding
         }
     }
 
@@ -188,49 +170,35 @@ public class EditCredentialsDialog extends JDialog {
         }
 
         if (!strip && (isAllWhitespace(username) || isAllWhitespace(password))) {
-            int choice = JOptionPane.showOptionDialog(
-                    this,
-                    res.getString("icp.edit.emptyQuestion"),
-                    res.getString("icp.edit.emptyTitle"),
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE,
-                    null,
-                    new Object[]{
-                            res.getString("icp.edit.emptyContinue"),
-                            res.getString("icp.edit.emptyGoBack")},
+            int choice = JOptionPane.showOptionDialog(this,
+                    res.getString("icp.edit.emptyQuestion"), res.getString("icp.edit.emptyTitle"),
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                    new Object[]{ res.getString("icp.edit.emptyContinue"), res.getString("icp.edit.emptyGoBack") },
                     res.getString("icp.edit.emptyGoBack")
             );
-            if (choice != JOptionPane.YES_OPTION) {
-                return;
-            }
+            if (choice != JOptionPane.YES_OPTION) return;
         } else if (strip && (username.isEmpty() || password.isEmpty())) {
             statusLabel.setText(res.getString("icp.edit.statusEmptyWarning"));
             return;
         }
 
-        String base64Password = Base64.getEncoder()
-                .encodeToString(password.getBytes(StandardCharsets.UTF_8));
-
         try {
-            // If URL changed, delete old entry
             if (!originalUrl.equals(urlText)) {
                 TeamSettings.set(originalUrl + "!username", null);
                 TeamSettings.set(originalUrl + "!password", null);
             }
 
             TeamSettings.set(urlText + "!username", username);
-            TeamSettings.set(urlText + "!password", base64Password);
+            
+            // FIX: Using standardized full key
+            CredentialStorage.setPassword(urlText + "!password", password);
 
-            JOptionPane.showMessageDialog(
-                    this,
+            JOptionPane.showMessageDialog(this,
                     res.getString("icp.edit.confirmationMessage").replace("{URL}", urlText),
                     res.getString("icp.edit.confirmationTitle"),
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+                    JOptionPane.INFORMATION_MESSAGE);
 
-            if (onSuccess != null) {
-                onSuccess.run();
-            }
+            if (onSuccess != null) onSuccess.run();
             dispose();
 
         } catch (Exception ex) {
@@ -239,23 +207,11 @@ public class EditCredentialsDialog extends JDialog {
     }
 
     private boolean isValidURL(String urlText) {
-        try {
-            new java.net.URL(urlText);
-            return true;
-        } catch (java.net.MalformedURLException e) {
-            return false;
-        }
+        try { new java.net.URL(urlText); return true; } 
+        catch (java.net.MalformedURLException e) { return false; }
     }
 
-    private boolean isEmpty(String s) {
-        return s == null || s.isEmpty();
-    }
-
-    private boolean isAllWhitespace(String s) {
-        return s != null && s.trim().isEmpty();
-    }
-
-    private String trimWhitespace(String s) {
-        return s == null ? null : s.strip();
-    }
+    private boolean isEmpty(String s) { return s == null || s.isEmpty(); }
+    private boolean isAllWhitespace(String s) { return s != null && s.trim().isEmpty(); }
+    private String trimWhitespace(String s) { return s == null ? null : s.strip(); }
 }

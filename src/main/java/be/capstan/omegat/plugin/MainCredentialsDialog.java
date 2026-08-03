@@ -224,12 +224,13 @@ public class MainCredentialsDialog extends JDialog {
             Properties exportProps = new Properties();
             for (String url : selectedUrls) {
                 String username = TeamSettings.get(url + "!username");
-                String password = TeamSettings.get(url + "!password");
+                String exportPassword = CredentialStorage.getBase64ForExport(url + "!password"); // Safe export logic
+                
                 if (username != null) {
                     exportProps.setProperty(url + "!username", username);
                 }
-                if (password != null) {
-                    exportProps.setProperty(url + "!password", password);
+                if (exportPassword != null) {
+                    exportProps.setProperty(url + "!password", exportPassword);
                 }
             }
 

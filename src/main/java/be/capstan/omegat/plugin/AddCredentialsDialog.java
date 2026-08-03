@@ -5,8 +5,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -194,12 +192,9 @@ public class AddCredentialsDialog extends JDialog {
             // Continue anyway
         }
 
-        String base64Password = Base64.getEncoder()
-                .encodeToString(password.getBytes(StandardCharsets.UTF_8));
-
         try {
             TeamSettings.set(urlText + "!username", username);
-            TeamSettings.set(urlText + "!password", base64Password);
+            CredentialStorage.setPassword(urlText + "!password", password); // Uses abstraction logic
 
             JOptionPane.showMessageDialog(
                     this,

@@ -53,18 +53,6 @@ public class ImportFromFileDialog {
         }
     }
 
-    //private static List<String> getHardcodedPasswords() {
-        //try {
-            //Class<?> cls = Class.forName("be.capstan.omegat.plugin.CredentialKeys");
-            //@SuppressWarnings("unchecked")
-            //List<String> passwords =
-                    //(List<String>) cls.getMethod("getPasswords").invoke(null);
-            //return passwords;
-        //} catch (Exception ignored) {
-            //return Collections.emptyList();
-        //}
-    //}
-
     private static String readPlainFile(Component parent, File file) {
         try {
             return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
@@ -163,8 +151,18 @@ public class ImportFromFileDialog {
                 if (creds.containsKey("username")) {
                     TeamSettings.set(url + "!username", creds.get("username"));
                 }
+                
                 if (creds.containsKey("password")) {
-                    TeamSettings.set(url + "!password", creds.get("password"));
+                    String base64Pwd = creds.get("password");
+                    try {
+                        // The imported properties file has Base64. Decode it to plaintext so 
+                        // CredentialStorage can decide whether to encrypt it for M118 or re-Base64 it.
+                        String plainPwd = new String(Base64.getDecoder().decode(base64Pwd), StandardCharsets.UTF_8);
+                        CredentialStorage.setPassword(url + "!password", plainPwd);
+                    } catch (IllegalArgumentException e) {
+                        // Fallback if the file somehow had a plaintext password
+                        CredentialStorage.setPassword(url + "!password", base64Pwd);
+                    }
                 }
                 urlCount++;
             }
